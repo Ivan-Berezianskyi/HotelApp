@@ -6,22 +6,17 @@ namespace HotelApp.Services
     internal class AuthService : IAuthService
     {
         private readonly IReadOnlyList<IAccount> _accounts;
+        private readonly IRoleFilterRegistry _roleFilterRegistry;
 
-        public AuthService(IEnumerable<IAccount> accounts)
+        public AuthService(IEnumerable<IAccount> accounts, IRoleFilterRegistry roleFilterRegistry)
         {
             _accounts = accounts.ToList();
+            _roleFilterRegistry = roleFilterRegistry;
         }
 
         public IAccount? Authenticate(int roleId, string name, string password)
         {
-            Func<IAccount, bool>? roleFilter = roleId switch
-            {
-                1 => account => account is IAdmin,
-                2 => account => account is IClient,
-                _ => null
-            };
-
-            if (roleFilter == null)
+            if (!_roleFilterRegistry.TryGetRoleFilter(roleId, out Func<IAccount, bool>? roleFilter) || roleFilter == null)
             {
                 return null;
             }

@@ -5,20 +5,21 @@ namespace HotelApp.UI
 {
     internal class AdminMenu : BaseHotelMenu
     {
-        private readonly Dictionary<string, RoomTypeDefinition> _roomTypes =
-            new Dictionary<string, RoomTypeDefinition>
-            {
-                ["1"] = new RoomTypeDefinition("Standard", (number, price) => new StandardRoom(number, price)),
-                ["2"] = new RoomTypeDefinition("VIP", (number, price) => new VIPRoom(number, price))
-            };
+        private readonly IRoomTypeRegistry _roomTypeRegistry;
 
         private readonly IAdmin _admin;
         private readonly IHotelAdminService _hotelAdminService;
 
-        public AdminMenu(Hotel hotel, IAdmin admin, ILogger logger, IHotelAdminService hotelAdminService) : base(hotel, logger)
+        public AdminMenu(
+            Hotel hotel,
+            IAdmin admin,
+            ILogger logger,
+            IHotelAdminService hotelAdminService,
+            IRoomTypeRegistry roomTypeRegistry) : base(hotel, logger)
         {
             _admin = admin;
             _hotelAdminService = hotelAdminService;
+            _roomTypeRegistry = roomTypeRegistry;
         }
         
         public override void Display()
@@ -107,7 +108,7 @@ namespace HotelApp.UI
         {
             string options = string.Join(
                 ", ",
-                _roomTypes.Select(pair => $"{pair.Key}-{pair.Value.Name}"));
+                _roomTypeRegistry.Definitions.Select(pair => $"{pair.Key}-{pair.Value.Name}"));
             _logger.Print($"Тип ({options}): ");
         }
 
@@ -115,7 +116,7 @@ namespace HotelApp.UI
         {
             string? type = Console.ReadLine();
 
-            if (string.IsNullOrWhiteSpace(type) || !_roomTypes.TryGetValue(type, out roomTypeDefinition))
+            if (string.IsNullOrWhiteSpace(type) || !_roomTypeRegistry.TryGet(type, out roomTypeDefinition))
             {
                 roomTypeDefinition = null;
                 _logger.Print("Помилка: тип кімнати має бути одним зі значень");

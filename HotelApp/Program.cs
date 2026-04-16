@@ -15,17 +15,27 @@ namespace HotelBookingSystem
             IAdmin admin = new Admin("Головний Адмін", "admin");
             IClient client = new Client("Олександр", "1234", 10000);
             List<IAccount> accounts = new List<IAccount> { admin, client };
-            IAuthService authService = new AuthService(accounts);
+            IRoleFilterRegistry roleFilterRegistry = new RoleFilterRegistry();
+            IAuthService authService = new AuthService(accounts, roleFilterRegistry);
             ILogger logger = new ConsoleLogger();
             IHotelAdminService hotelAdminService = new HotelAdminService(myHotel);
             Func<IClient, IHotelClientService> clientServiceFactory =
                 currentClient => new HotelClientService(myHotel, currentClient);
+            IRoomTypeRegistry roomTypeRegistry = new RoomTypeRegistry(
+                new Dictionary<string, RoomTypeDefinition>
+                {
+                    ["1"] = new RoomTypeDefinition("Standard", (number, price) => new StandardRoom(number, price)),
+                    ["2"] = new RoomTypeDefinition("VIP", (number, price) => new VIPRoom(number, price))
+                });
 
-            IAccountMenuFactory menuFactory = new AccountMenuFactory(
+            IAccountMenuRegistry accountMenuRegistry = new AccountMenuRegistry(
                 myHotel,
                 logger,
                 hotelAdminService,
-                clientServiceFactory);
+                clientServiceFactory,
+                roomTypeRegistry);
+
+            IAccountMenuFactory menuFactory = new AccountMenuFactory(accountMenuRegistry);
 
             while (true)
             {
