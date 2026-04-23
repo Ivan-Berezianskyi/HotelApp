@@ -21,9 +21,19 @@ namespace HotelApp.UI
                 return;
             }
 
-            foreach (var r in _hotel.Rooms)
+            var roomView = _hotel.Rooms
+                .Select(room => new
+                {
+                    room.Number,
+                    room.Price,
+                    Status = room.IsOccupied ? "Зайнято" : "Вільно"
+                })
+                .OrderBy(room => room.Number)
+                .ToList();
+
+            foreach (var r in roomView)
             {
-                _logger.Print($"Кімната {r.Number} | Ціна: {r.Price} | {(r.IsOccupied ? "Зайнято" : "Вільно")}");
+                _logger.Print($"Кімната {r.Number} | Ціна: {r.Price} | {r.Status}");
             }
         }
 

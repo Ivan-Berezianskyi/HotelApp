@@ -1,4 +1,5 @@
 ﻿using HotelApp.Interfaces;
+using HotelApp.Security;
 
 namespace HotelApp.Models
 {
@@ -12,6 +13,6 @@ namespace HotelApp.Models
             _password = password;
         }
 
-        public bool CheckPassword(string pass) => _password == pass;
+        public bool CheckPassword(string pass) => PasswordHasher.Verify(pass, _password);
     }
 }

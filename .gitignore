@@ -480,3 +480,11 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Project-specific local runtime files
+hotelapp.db
+hotelapp.db-shm
+hotelapp.db-wal
+*.db-shm
+*.db-wal
+*.db-journal

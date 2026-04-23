@@ -1,4 +1,5 @@
 ﻿using HotelApp.Interfaces;
+using HotelApp.Security;
 
 namespace HotelApp.Models
 {
@@ -18,7 +19,7 @@ namespace HotelApp.Models
                 return false;
             }
 
-            _password = newPassword;
+            _password = PasswordHasher.Hash(newPassword);
             return true;
         }
     }
