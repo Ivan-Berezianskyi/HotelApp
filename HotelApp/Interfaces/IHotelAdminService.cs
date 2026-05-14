@@ -7,5 +7,6 @@ namespace HotelApp.Interfaces
         bool TryAddRoom(Room room, out string? errorMessage);
         bool TryRemoveRoom(int number, out string? errorMessage);
         bool TryGetRevenue(out double revenue, out string? errorMessage);
+        bool TryChangePassword(IAdmin admin, string currentPassword, string newPassword, out string? errorMessage);
     }
 }

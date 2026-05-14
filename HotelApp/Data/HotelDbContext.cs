@@ -5,36 +5,14 @@ namespace HotelApp.Data
 {
     internal class HotelDbContext : DbContext
     {
-        private readonly string? _connectionString;
-
         public DbSet<DbUser> Users => Set<DbUser>();
         public DbSet<DbRoomType> RoomTypes => Set<DbRoomType>();
         public DbSet<DbRoom> Rooms => Set<DbRoom>();
         public DbSet<DbHotelState> HotelState => Set<DbHotelState>();
         public DbSet<DbBooking> Bookings => Set<DbBooking>();
 
-        public HotelDbContext(string connectionString)
-        {
-            _connectionString = connectionString;
-        }
-
         public HotelDbContext(DbContextOptions<HotelDbContext> options) : base(options)
         {
-        }
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            if (optionsBuilder.IsConfigured)
-            {
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(_connectionString))
-            {
-                throw new InvalidOperationException("SQLite connection string is required.");
-            }
-
-            optionsBuilder.UseSqlite(_connectionString);
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

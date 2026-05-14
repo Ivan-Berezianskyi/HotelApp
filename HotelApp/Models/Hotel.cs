@@ -152,35 +152,17 @@ namespace HotelApp.Models
 
         private static bool TryResolveRoomTypeCode(Room room, out string? code)
         {
-            if (room is StandardRoom)
-            {
-                code = "1";
-                return true;
-            }
-
-            if (room is VIPRoom)
-            {
-                code = "2";
-                return true;
-            }
-
-            code = null;
-            return false;
+            return RoomTypeRegistry.TryGetCode(room, out code);
         }
 
         private static Room? MapDbRoomToDomain(DbRoom dbRoom)
         {
-            Room? room = dbRoom.RoomTypeCode switch
-            {
-                "1" => new StandardRoom(dbRoom.Number, dbRoom.Price),
-                "2" => new VIPRoom(dbRoom.Number, dbRoom.Price),
-                _ => null
-            };
-
-            if (room == null)
+            if (!RoomTypeRegistry.TryGet(dbRoom.RoomTypeCode, out RoomTypeDefinition? definition) || definition == null)
             {
                 return null;
             }
+
+            Room room = definition.Factory(dbRoom.Number, dbRoom.Price);
 
             if (dbRoom.IsOccupied)
             {

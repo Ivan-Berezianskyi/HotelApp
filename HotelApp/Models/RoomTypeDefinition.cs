@@ -1,6 +1,4 @@
-using HotelApp.Models;
-
-namespace HotelApp.UI
+namespace HotelApp.Models
 {
     internal sealed class RoomTypeDefinition
     {

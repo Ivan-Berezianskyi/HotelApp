@@ -1,21 +1,38 @@
 using HotelApp.Interfaces;
+using HotelApp.Models;
 
 namespace HotelApp.UI
 {
     internal class AccountMenuFactory : IAccountMenuFactory
     {
-        private readonly IAccountMenuRegistry _menuRegistry;
+        private readonly Hotel _hotel;
+        private readonly ILogger _logger;
+        private readonly IHotelAdminService _hotelAdminService;
+        private readonly Func<IClient, IHotelClientService> _clientServiceFactory;
 
-        public AccountMenuFactory(IAccountMenuRegistry menuRegistry)
+        public AccountMenuFactory(
+            Hotel hotel,
+            ILogger logger,
+            IHotelAdminService hotelAdminService,
+            Func<IClient, IHotelClientService> clientServiceFactory)
         {
-            _menuRegistry = menuRegistry;
+            _hotel = hotel;
+            _logger = logger;
+            _hotelAdminService = hotelAdminService;
+            _clientServiceFactory = clientServiceFactory;
         }
 
         public IMenu CreateMenu(IAccount account)
         {
-            if (_menuRegistry.TryCreateMenu(account, out IMenu? menu) && menu != null)
+            if (account is IAdmin admin)
             {
-                return menu;
+                return new AdminMenu(_hotel, admin, _logger, _hotelAdminService);
+            }
+
+            if (account is IClient client)
+            {
+                IHotelClientService clientService = _clientServiceFactory(client);
+                return new ClientMenu(_hotel, client, _logger, clientService);
             }
 
             throw new ArgumentException("Невідомий тип акаунту");

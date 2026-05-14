@@ -16,7 +16,7 @@ namespace HotelApp.UI
         }
         public override void Display()
         {
-            int action = 0;
+            int action;
             do
             {
                 _logger.Print($"\n--- МЕНЮ КЛІЄНТА ({_client.Name}) ---");

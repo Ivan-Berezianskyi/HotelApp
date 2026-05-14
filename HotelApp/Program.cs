@@ -4,8 +4,10 @@ using HotelApp.UI;
 using HotelApp.Interfaces;
 using HotelApp.Infrastructure;
 using HotelApp.Data;
-using HotelApp.Data.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace HotelBookingSystem
 {
@@ -15,66 +17,70 @@ namespace HotelBookingSystem
         {
             Console.OutputEncoding = System.Text.Encoding.UTF8;
 
-            using HotelDbContext dbContext = new HotelDbContext("Data Source=hotelapp.db");
-            SqliteBootstrapper.EnsureCreatedAndSeed(dbContext);
+            var config = DatabaseConfiguration.BuildConfiguration();
+            var services = ConfigureServices(config);
 
-            Hotel myHotel = new Hotel(dbContext);
-            List<IAccount> accounts = LoadAccountsFromDb(dbContext);
-            IRoleFilterRegistry roleFilterRegistry = new RoleFilterRegistry();
-            IAuthService authService = new AuthService(accounts, roleFilterRegistry);
-            ILogger logger = new ConsoleLogger();
-            IHotelAdminService hotelAdminService = new HotelAdminService(myHotel);
-            Func<IClient, IHotelClientService> clientServiceFactory =
-                currentClient => new HotelClientService(myHotel, currentClient, dbContext);
-            IRoomTypeRegistry roomTypeRegistry = SqliteRoomTypeRegistryFactory.Create(dbContext);
-
-            IAccountMenuRegistry accountMenuRegistry = new AccountMenuRegistry(
-                myHotel,
-                logger,
-                hotelAdminService,
-                clientServiceFactory,
-                roomTypeRegistry);
-
-            IAccountMenuFactory menuFactory = new AccountMenuFactory(accountMenuRegistry);
-
-            while (true)
+            using (var serviceProvider = services.BuildServiceProvider())
             {
-                ILoginMenu loginMenu = new LoginMenu(authService, logger);
-                loginMenu.Display();
+                var dbContext = serviceProvider.GetRequiredService<HotelDbContext>();
+                DatabaseBootstrapper.EnsureCreatedAndSeed(dbContext, config);
 
-                IAccount? currentAccount = loginMenu.AuthenticatedAccount;
-
-                if (currentAccount != null)
-                {
-                    IMenu userMenu = menuFactory.CreateMenu(currentAccount);
-                    
-                    userMenu.Display();
-                }
-
-                Console.Clear();
+                var runner = new ApplicationRunner(serviceProvider);
+                runner.Run();
             }
         }
 
-        private static List<IAccount> LoadAccountsFromDb(HotelDbContext dbContext)
+        static IServiceCollection ConfigureServices(IConfiguration config)
         {
-            List<IAccount> accounts = new List<IAccount>();
+            var services = new ServiceCollection();
 
-            List<DbUser> users = dbContext.Users.AsNoTracking().ToList();
-            foreach (DbUser user in users)
+            // Configuration
+            services.AddSingleton(config);
+
+            // Database
+            services.AddDbContext<HotelDbContext>(options =>
+                options.UseNpgsql(config.GetConnectionString("HotelDb")
+                    ?? throw new InvalidOperationException("Connection string 'HotelDb' not found.")));
+
+            // Models
+            services.AddScoped<Hotel>();
+
+            // Infrastructure
+            services.AddSingleton<HotelApp.Interfaces.ILogger>(sp =>
             {
-                if (string.Equals(user.Role, "admin", StringComparison.OrdinalIgnoreCase))
+                var logger = new LoggerComposite();
+
+                if (bool.TryParse(config["Logger:FileProvider"], out bool useFileLogger) && useFileLogger)
                 {
-                    accounts.Add(new Admin(user.Name, user.PasswordHash));
-                    continue;
+                    string logPath = config["Logger:FilePath"] ?? "hotel.log";
+                    logger.AddLogger(new FileLogger(logPath));
                 }
 
-                if (string.Equals(user.Role, "client", StringComparison.OrdinalIgnoreCase))
+                if (bool.TryParse(config["Logger:ConsoleProvider"], out bool useConsoleLogger) && useConsoleLogger)
                 {
-                    accounts.Add(new Client(user.Name, user.PasswordHash, user.Balance ?? 0));
+                    logger.AddLogger(new ConsoleLogger());
                 }
-            }
 
-            return accounts;
+                return logger;
+            });
+
+            // Account loading
+            services.AddScoped<IAccountLoader, AccountLoader>();
+
+            // Services
+            services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IHotelAdminService, HotelAdminService>();
+            services.AddScoped<Func<IClient, IHotelClientService>>(sp =>
+                client => new HotelClientService(
+                    sp.GetRequiredService<Hotel>(),
+                    client,
+                    sp.GetRequiredService<HotelDbContext>()));
+
+            // UI
+            services.AddScoped<IAccountMenuFactory, AccountMenuFactory>();
+            services.AddScoped<ILoginMenu, LoginMenu>();
+
+            return services;
         }
     }
 }

@@ -5,8 +5,6 @@ namespace HotelApp.UI
 {
     internal class AdminMenu : BaseHotelMenu
     {
-        private readonly IRoomTypeRegistry _roomTypeRegistry;
-
         private readonly IAdmin _admin;
         private readonly IHotelAdminService _hotelAdminService;
 
@@ -14,21 +12,19 @@ namespace HotelApp.UI
             Hotel hotel,
             IAdmin admin,
             ILogger logger,
-            IHotelAdminService hotelAdminService,
-            IRoomTypeRegistry roomTypeRegistry) : base(hotel, logger)
+            IHotelAdminService hotelAdminService) : base(hotel, logger)
         {
             _admin = admin;
             _hotelAdminService = hotelAdminService;
-            _roomTypeRegistry = roomTypeRegistry;
         }
         
         public override void Display()
         {
-            int action = 0;
+            int action;
             do
             {
                 _logger.Print($"\n--- ПАНЕЛЬ АДМІНІСТРАТОРА ({_admin.Name}) ---");
-                _logger.Print("1. Список номерів | 2. Додати номер | 3. Видалити номер | 4. Прибуток | 0. Вихід");
+                _logger.Print("1. Список номерів | 2. Додати номер | 3. Видалити номер | 4. Прибуток | 5. Змінити пароль | 0. Вихід");
                 _logger.Print("Оберіть дію: ");
 
                 TryReadNonNegativeNumber(out action);
@@ -52,6 +48,9 @@ namespace HotelApp.UI
                     break;
                 case 4:
                     ShowRevenue();
+                    break;
+                case 5:
+                    ChangePassword();
                     break;
                 case 0:
                     break;
@@ -108,7 +107,7 @@ namespace HotelApp.UI
         {
             string options = string.Join(
                 ", ",
-                _roomTypeRegistry.Definitions.Select(pair => $"{pair.Key}-{pair.Value.Name}"));
+                RoomTypeRegistry.Definitions.Select(pair => $"{pair.Key}-{pair.Value.Name}"));
             _logger.Print($"Тип ({options}): ");
         }
 
@@ -116,13 +115,30 @@ namespace HotelApp.UI
         {
             string? type = Console.ReadLine();
 
-            if (string.IsNullOrWhiteSpace(type) || !_roomTypeRegistry.TryGet(type, out roomTypeDefinition))
+            if (string.IsNullOrWhiteSpace(type) || !RoomTypeRegistry.TryGet(type, out roomTypeDefinition))
             {
                 roomTypeDefinition = null;
                 _logger.Print("Помилка: тип кімнати має бути одним зі значень");
                 
                 return;
             }
+        }
+
+        private void ChangePassword()
+        {
+            _logger.Print("Введіть поточний пароль: ");
+            string currentPassword = Console.ReadLine() ?? string.Empty;
+
+            _logger.Print("Введіть новий пароль: ");
+            string newPassword = Console.ReadLine() ?? string.Empty;
+
+            if (!_hotelAdminService.TryChangePassword(_admin, currentPassword, newPassword, out string? errorMessage))
+            {
+                LogIfError(errorMessage);
+                return;
+            }
+
+            _logger.Print("Успіх: пароль змінено.");
         }
     }
 }

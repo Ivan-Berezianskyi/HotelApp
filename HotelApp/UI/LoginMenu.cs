@@ -7,6 +7,7 @@ namespace HotelApp.UI
     {
         private readonly IAuthService _authService;
         public IAccount? AuthenticatedAccount { get; private set; }
+        public bool UserWantsToExit { get; private set; }
 
         public LoginMenu(IAuthService authService, ILogger logger) : base(logger)
         {
@@ -15,7 +16,9 @@ namespace HotelApp.UI
 
         public override void Display()
         {
-            while (AuthenticatedAccount == null)
+            UserWantsToExit = false;
+            
+            while (AuthenticatedAccount == null && !UserWantsToExit)
             {
                 _logger.Print("\n=== СИСТЕМА ГОТЕЛЮ ===");
                 _logger.Print("1. Увійти як Адмін | 2. Увійти як Клієнт | 0. Вимкнути систему");
@@ -25,7 +28,8 @@ namespace HotelApp.UI
 
                 if (action == 0)
                 {
-                    Environment.Exit(0);
+                    UserWantsToExit = true;
+                    break;
                 }
 
                 if (action == 1 || action == 2)
@@ -67,6 +71,12 @@ namespace HotelApp.UI
         private void ShowError()
         {
             _logger.Print("Доступ відхилено! Невірні ім'я, пароль або вибір.");
+        }
+
+        public void ResetState()
+        {
+            AuthenticatedAccount = null;
+            UserWantsToExit = false;
         }
     }
 }

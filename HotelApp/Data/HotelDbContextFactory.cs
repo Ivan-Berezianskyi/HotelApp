@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 
 namespace HotelApp.Data
@@ -7,10 +6,8 @@ namespace HotelApp.Data
     {
         public HotelDbContext CreateDbContext(string[] args)
         {
-            DbContextOptionsBuilder<HotelDbContext> builder = new DbContextOptionsBuilder<HotelDbContext>();
-            builder.UseSqlite("Data Source=hotelapp.db");
-
-            return new HotelDbContext(builder.Options);
+            var config = DatabaseConfiguration.BuildConfiguration();
+            return new HotelDbContext(DatabaseConfiguration.CreateOptions(config));
         }
     }
 }

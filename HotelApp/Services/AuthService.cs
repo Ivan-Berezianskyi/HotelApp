@@ -5,26 +5,21 @@ namespace HotelApp.Services
 {
     internal class AuthService : IAuthService
     {
-        private readonly IReadOnlyList<IAccount> _accounts;
-        private readonly IRoleFilterRegistry _roleFilterRegistry;
+        private readonly IAccountLoader _accountLoader;
+        private IReadOnlyList<IAccount>? _cachedAccounts;
 
-        public AuthService(IEnumerable<IAccount> accounts, IRoleFilterRegistry roleFilterRegistry)
+        public AuthService(IAccountLoader accountLoader)
         {
-            _accounts = accounts.ToList();
-            _roleFilterRegistry = roleFilterRegistry;
+            _accountLoader = accountLoader;
         }
 
         public IAccount? Authenticate(int roleId, string name, string password)
         {
-            if (!_roleFilterRegistry.TryGetRoleFilter(roleId, out Func<IAccount, bool>? roleFilter) || roleFilter == null)
-            {
-                return null;
-            }
-
+            _cachedAccounts ??= _accountLoader.LoadAccountsFromDb();
             string normalizedName = name.Trim();
 
-            IAccount? selectedAccount = _accounts.FirstOrDefault(account =>
-                roleFilter(account)
+            IAccount? selectedAccount = _cachedAccounts?.FirstOrDefault(account =>
+                IsRoleMatch(roleId, account)
                 && string.Equals(account.Name, normalizedName, StringComparison.OrdinalIgnoreCase)
                 && account.CheckPassword(password));
 
@@ -34,6 +29,16 @@ namespace HotelApp.Services
             }
 
             return selectedAccount;
+        }
+
+        private static bool IsRoleMatch(int roleId, IAccount account)
+        {
+            return roleId switch
+            {
+                1 => account is IAdmin,
+                2 => account is IClient,
+                _ => false
+            };
         }
     }
 }
