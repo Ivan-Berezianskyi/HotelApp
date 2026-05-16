@@ -1,10 +1,7 @@
 using HotelApp.API.DTOs;
-using HotelApp.Data;
-using HotelApp.Data.Entities;
 using HotelApp.Interfaces;
 using HotelApp.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace HotelApp.API.Controllers
 {
@@ -12,13 +9,13 @@ namespace HotelApp.API.Controllers
     [Route("api/[controller]")]
     public class AdminsController : ControllerBase
     {
-        private readonly HotelDbContext _dbContext;
         private readonly IHotelAdminService _hotelAdminService;
+        private readonly HotelApp.API.Services.ICurrentUserService _currentUserService;
 
-        public AdminsController(HotelDbContext dbContext, IHotelAdminService hotelAdminService)
+        public AdminsController(IHotelAdminService hotelAdminService, HotelApp.API.Services.ICurrentUserService currentUserService)
         {
-            _dbContext = dbContext;
             _hotelAdminService = hotelAdminService;
+            _currentUserService = currentUserService;
         }
 
         [HttpGet("revenue")]
@@ -64,17 +61,13 @@ namespace HotelApp.API.Controllers
         [HttpPost("{name}/change-password")]
         public ActionResult<OperationResultDto> ChangePassword(string name, [FromBody] ChangePasswordRequest request)
         {
-            string normalizedName = name.Trim().ToLowerInvariant();
-            DbUser? user = _dbContext.Users.AsNoTracking().FirstOrDefault(u =>
-                u.Role.ToLower() == "admin" && u.Name.ToLower() == normalizedName);
-            if (user == null)
+            if (!_hotelAdminService.TryChangePasswordByName(name, request.CurrentPassword, request.NewPassword, out string? errorMessage))
             {
-                return NotFound(new OperationResultDto(false, "Admin not found"));
-            }
+                if (errorMessage == "Помилка: адміністратора не знайдено в БД.")
+                {
+                    return NotFound(new OperationResultDto(false, "Admin not found"));
+                }
 
-            IAdmin admin = new Admin(user.Name, user.PasswordHash);
-            if (!_hotelAdminService.TryChangePassword(admin, request.CurrentPassword, request.NewPassword, out string? errorMessage))
-            {
                 return BadRequest(new OperationResultDto(false, errorMessage ?? "Change password failed"));
             }
 

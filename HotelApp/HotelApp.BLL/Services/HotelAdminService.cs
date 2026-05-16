@@ -68,5 +68,36 @@ namespace HotelApp.Services
             errorMessage = null;
             return true;
         }
+
+        public bool TryChangePasswordByName(string name, string currentPassword, string newPassword, out string? errorMessage)
+        {
+            if (string.IsNullOrWhiteSpace(newPassword) || newPassword.Length < 4)
+            {
+                errorMessage = "Помилка: новий пароль має містити мінімум 4 символи.";
+                return false;
+            }
+
+            DbUser? user = _dbContext.Users.FirstOrDefault(item =>
+                item.Name.ToLower() == name.Trim().ToLowerInvariant()
+                && item.Role.ToLower() == "admin");
+
+            if (user == null)
+            {
+                errorMessage = "Помилка: адміністратора не знайдено в БД.";
+                return false;
+            }
+
+            if (!PasswordHasher.Verify(currentPassword, user.PasswordHash))
+            {
+                errorMessage = "Помилка: невірний поточний пароль.";
+                return false;
+            }
+
+            user.PasswordHash = PasswordHasher.Hash(newPassword);
+            _dbContext.SaveChanges();
+
+            errorMessage = null;
+            return true;
+        }
     }
 }

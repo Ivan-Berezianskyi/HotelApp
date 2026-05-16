@@ -28,6 +28,7 @@ dotnet run --project "HotelApp\HotelApp.API\HotelApp.API.csproj"
 
 ```powershell
 dotnet test
+dotnet test HotelApp.Tests\HotelApp.Tests.csproj --collect:"XPlat Code Coverage"
 ```
 
 http://127.0.0.1:5000/swagger/index.html

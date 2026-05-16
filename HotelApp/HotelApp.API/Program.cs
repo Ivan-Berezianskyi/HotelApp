@@ -13,6 +13,9 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<HotelApp.API.Services.ICurrentUserService, HotelApp.API.Services.CurrentUserService>();
+
 builder.Services.AddDbContext<HotelDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("HotelDb")
         ?? throw new InvalidOperationException("Connection string 'HotelDb' not found.")));

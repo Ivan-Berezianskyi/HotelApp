@@ -158,6 +158,12 @@ namespace HotelApp.Services
             return rooms.AsReadOnly();
         }
 
+        public double GetBalance()
+        {
+            DbUser? user = GetClientUser();
+            return user?.Balance ?? 0;
+        }
+
         private DbUser? GetClientUser()
         {
             string clientName = _client.Name.Trim().ToLowerInvariant();
