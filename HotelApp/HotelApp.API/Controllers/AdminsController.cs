@@ -64,8 +64,9 @@ namespace HotelApp.API.Controllers
         [HttpPost("{name}/change-password")]
         public ActionResult<OperationResultDto> ChangePassword(string name, [FromBody] ChangePasswordRequest request)
         {
+            string normalizedName = name.Trim().ToLowerInvariant();
             DbUser? user = _dbContext.Users.AsNoTracking().FirstOrDefault(u =>
-                u.Role == "admin" && string.Equals(u.Name, name, StringComparison.OrdinalIgnoreCase));
+                u.Role.ToLower() == "admin" && u.Name.ToLower() == normalizedName);
             if (user == null)
             {
                 return NotFound(new OperationResultDto(false, "Admin not found"));

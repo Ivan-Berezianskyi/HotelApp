@@ -9,7 +9,6 @@
 - додавання номера (Standard або VIP)
 - видалення номера (лише якщо він не зайнятий)
 - перегляд загального прибутку готелю
-
 ### Клієнт
 - перегляд списку номерів
 - бронювання номера
@@ -22,5 +21,13 @@
 ## Швидкий старт
 
 ```powershell
-dotnet run --project .\HotelApp\HotelApp.csproj
+dotnet run --project "HotelApp\HotelApp.API\HotelApp.API.csproj"
 ```
+
+## Тести
+
+```powershell
+dotnet test
+```
+
+http://127.0.0.1:5000/swagger/index.html

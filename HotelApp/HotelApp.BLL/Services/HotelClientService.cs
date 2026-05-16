@@ -160,9 +160,10 @@ namespace HotelApp.Services
 
         private DbUser? GetClientUser()
         {
+            string clientName = _client.Name.Trim().ToLowerInvariant();
             return _dbContext.Users.FirstOrDefault(user =>
-                user.Name == _client.Name
-                && user.Role == "client");
+                user.Name.ToLower() == clientName
+                && user.Role.ToLower() == "client");
         }
     }
 }

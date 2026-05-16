@@ -31,7 +31,7 @@ public class ServiceTests
     }
 
     [Fact]
-    public void AuthService_AuthenticatesByRoleNameAndPasswordAndCachesAccounts()
+    public void AuthService_AuthenticatesByRoleNameAndPasswordAndReloadsAccounts()
     {
         // Arrange
         Admin admin = new Admin("Admin", "secret");
@@ -45,7 +45,26 @@ public class ServiceTests
         // Assert
         Assert.Same(admin, firstMatch);
         Assert.Same(admin, secondMatch);
-        Assert.Equal(1, loader.LoadCount);
+        Assert.Equal(2, loader.LoadCount);
+    }
+
+    [Fact]
+    public void AuthService_SeesPasswordChangesOnSubsequentAuthentications()
+    {
+        // Arrange
+        Admin admin = new Admin("Admin", "secret");
+        FakeAccountLoader loader = new FakeAccountLoader(new List<IAccount> { admin });
+        AuthService service = new AuthService(loader);
+
+        // Act
+        IAccount? firstMatch = service.Authenticate(1, "Admin", "secret");
+        admin.ChangePassword("secret", "newsecret");
+        IAccount? secondMatch = service.Authenticate(1, "Admin", "newsecret");
+
+        // Assert
+        Assert.Same(admin, firstMatch);
+        Assert.Same(admin, secondMatch);
+        Assert.Equal(2, loader.LoadCount);
     }
 
     [Fact]
@@ -92,9 +111,9 @@ public class ServiceTests
         // Arrange
         using HotelTestDatabase database = HotelTestDatabase.Create();
         database.SeedRevenue(250);
-        database.SeedUsers(new DbUser { Name = "admin", PasswordHash = "secret", Role = "admin" });
+        database.SeedUsers(new DbUser { Name = "Admin", PasswordHash = "secret", Role = "Admin" });
         HotelAdminService service = new HotelAdminService(database.Hotel, database.DbContext);
-        Admin admin = new Admin("admin", "secret");
+        Admin admin = new Admin(" admin ", "secret");
 
         // Act
         bool revenueOk = service.TryGetRevenue(out double revenue, out string? revenueError);
@@ -113,7 +132,7 @@ public class ServiceTests
         Assert.True(passwordChanged);
         Assert.Null(changeError);
         Assert.True(admin.CheckPassword("newsecret"));
-        Assert.NotEqual("secret", database.DbContext.Users.Single(user => user.Name == "admin").PasswordHash);
+        Assert.NotEqual("secret", database.DbContext.Users.Single(user => user.Name == "Admin").PasswordHash);
     }
 
     [Fact]
@@ -168,6 +187,24 @@ public class ServiceTests
         Assert.Empty(clearedOrders);
         Assert.False(database.Hotel.FindRoomByNumber(101)!.IsOccupied);
         Assert.Equal(200, database.Hotel.Revenue);
+    }
+
+    [Fact]
+    public void HotelClientService_HandlesClientRoleRegardlessOfCase()
+    {
+        // Arrange
+        using HotelTestDatabase database = HotelTestDatabase.Create();
+        database.SeedUsers(new DbUser { Id = 1, Name = "client", PasswordHash = "secret", Role = "Client", Balance = 1000 });
+        database.SeedRooms(new DbRoom { Number = 101, RoomTypeCode = "1", Price = 100, IsOccupied = false });
+        Client client = new Client("CLIENT", "secret", 1000);
+        HotelClientService service = new HotelClientService(database.Hotel, client, database.DbContext);
+
+        // Act
+        bool booked = service.TryBookRoom(101, out string? bookError);
+
+        // Assert
+        Assert.True(booked);
+        Assert.Null(bookError);
     }
 
     [Fact]

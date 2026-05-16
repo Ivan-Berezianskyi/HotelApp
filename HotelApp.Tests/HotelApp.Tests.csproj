@@ -24,6 +24,7 @@
   <ItemGroup>
     <ProjectReference Include="..\HotelApp\HotelApp.BLL\HotelApp.BLL.csproj" />
     <ProjectReference Include="..\HotelApp\HotelApp.DAL\HotelApp.DAL.csproj" />
+    <ProjectReference Include="..\HotelApp\HotelApp.DAL\HotelApp.API.csproj" />
   </ItemGroup>
 
 </Project>

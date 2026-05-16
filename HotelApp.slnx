@@ -3,7 +3,6 @@
     <Project Path="HotelApp/HotelApp.API/HotelApp.API.csproj" />
     <Project Path="HotelApp/HotelApp.BLL/HotelApp.BLL.csproj" />
     <Project Path="HotelApp/HotelApp.DAL/HotelApp.DAL.csproj" />
-    <Project Path="HotelApp/HotelApp.UI/HotelApp.UI.csproj" />
   </Folder>
   <Project Path="HotelApp.Tests/HotelApp.Tests.csproj" />
 </Solution>

@@ -49,9 +49,10 @@ namespace HotelApp.Services
                 return false;
             }
 
+            string normalizedName = admin.Name.Trim().ToLowerInvariant();
             DbUser? user = _dbContext.Users.FirstOrDefault(item =>
-                item.Name == admin.Name
-                && item.Role == "admin");
+                item.Name.ToLower() == normalizedName
+                && item.Role.ToLower() == "admin");
 
             if (user == null)
             {

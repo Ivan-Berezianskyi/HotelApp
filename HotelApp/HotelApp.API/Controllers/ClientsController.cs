@@ -92,9 +92,10 @@ namespace HotelApp.API.Controllers
 
         private DbUser? GetClientUser(string name)
         {
+            string normalizedName = name.Trim().ToLowerInvariant();
             return _dbContext.Users.AsNoTracking().FirstOrDefault(user =>
-                user.Role == "client"
-                && string.Equals(user.Name, name, StringComparison.OrdinalIgnoreCase));
+                user.Role.ToLower() == "client"
+                && user.Name.ToLower() == normalizedName);
         }
     }
 }
