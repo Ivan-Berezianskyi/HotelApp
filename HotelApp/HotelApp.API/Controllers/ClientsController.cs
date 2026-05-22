@@ -9,12 +9,12 @@ namespace HotelApp.API.Controllers
     [Route("api/[controller]")]
     public class ClientsController : ControllerBase
     {
-        private readonly Func<IClient, IHotelClientService> _clientServiceFactory;
+        private readonly IHotelFacade _hotelFacade;
         private readonly HotelApp.API.Services.ICurrentUserService _currentUserService;
 
-        public ClientsController(Func<IClient, IHotelClientService> clientServiceFactory, HotelApp.API.Services.ICurrentUserService currentUserService)
+        public ClientsController(IHotelFacade hotelFacade, HotelApp.API.Services.ICurrentUserService currentUserService)
         {
-            _clientServiceFactory = clientServiceFactory;
+            _hotelFacade = hotelFacade;
             _currentUserService = currentUserService;
         }
 
@@ -22,8 +22,7 @@ namespace HotelApp.API.Controllers
         public ActionResult<ClientInfoDto> GetClient(string name)
         {
             var client = new ApiClient(name, 0);
-            IHotelClientService service = _clientServiceFactory(client);
-            double balance = service.GetBalance();
+            double balance = _hotelFacade.GetClientBalance(client);
             return Ok(new ClientInfoDto(name, balance));
         }
 
@@ -31,8 +30,7 @@ namespace HotelApp.API.Controllers
         public ActionResult<IEnumerable<RoomDto>> GetOrders(string name)
         {
             var client = new ApiClient(name, 0);
-            IHotelClientService service = _clientServiceFactory(client);
-            var rooms = service.GetMyOrders()
+            var rooms = _hotelFacade.GetClientOrders(client)
                 .Select(r => new RoomDto(r.Number, r.Price, r.IsOccupied, r.GetType().Name));
 
             return Ok(rooms);
@@ -42,9 +40,8 @@ namespace HotelApp.API.Controllers
         public ActionResult<OperationResultDto> BookRoom(string name, [FromBody] BookRoomRequest request)
         {
             var client = new ApiClient(name, 0);
-            IHotelClientService service = _clientServiceFactory(client);
 
-            if (!service.TryBookRoom(request.RoomNumber, out string? errorMessage))
+            if (!_hotelFacade.TryBookRoom(client, request.RoomNumber, out string? errorMessage))
             {
                 return BadRequest(new OperationResultDto(false, errorMessage ?? "Booking failed"));
             }
@@ -56,14 +53,13 @@ namespace HotelApp.API.Controllers
         public ActionResult<PayRoomResponse> PayForRoom(string name, [FromBody] PayRoomRequest request)
         {
             var client = new ApiClient(name, 0);
-            IHotelClientService service = _clientServiceFactory(client);
 
-            if (!service.TryPayForRoom(request.RoomNumber, request.StayDays, out double paidAmount, out string? errorMessage))
+            if (!_hotelFacade.TryPayForRoom(client, request.RoomNumber, request.StayDays, out double paidAmount, out string? errorMessage))
             {
                 return BadRequest(new OperationResultDto(false, errorMessage ?? "Payment failed"));
             }
 
-            double balance = service.GetBalance();
+            double balance = _hotelFacade.GetClientBalance(client);
             return Ok(new PayRoomResponse(paidAmount, balance));
         }
 

@@ -3,11 +3,19 @@ using HotelApp.Data.Entities;
 using HotelApp.Models;
 using HotelApp.Security;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotelApp.Bootstrap
 {
     public static class DatabaseBootstrapper
     {
+        public static void EnsureCreatedAndSeed(IServiceProvider services, IConfiguration config)
+        {
+            using var scope = services.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<HotelDbContext>();
+            EnsureCreatedAndSeed(dbContext, config);
+        }
+
         public static void EnsureCreatedAndSeed(HotelDbContext dbContext, IConfiguration config)
         {
             dbContext.Database.EnsureCreated();
