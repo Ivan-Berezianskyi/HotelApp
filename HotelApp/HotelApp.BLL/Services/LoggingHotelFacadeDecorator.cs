@@ -21,6 +21,18 @@ namespace HotelApp.Services
             return _inner.Authenticate(roleId, name, password);
         }
 
+        public IReadOnlyList<Room> GetAllRooms()
+        {
+            _logger.LogInformation("GetAllRooms");
+            return _inner.GetAllRooms();
+        }
+
+        public Room? GetRoom(int number)
+        {
+            _logger.LogInformation("GetRoom number={Number}", number);
+            return _inner.GetRoom(number);
+        }
+
         public bool TryGetRevenue(out double revenue, out string? errorMessage)
         {
             _logger.LogInformation("TryGetRevenue");

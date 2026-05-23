@@ -6,6 +6,9 @@ namespace HotelApp.Interfaces
     {
         IAccount? Authenticate(int roleId, string name, string password);
 
+        IReadOnlyList<Room> GetAllRooms();
+        Room? GetRoom(int number);
+
         bool TryGetRevenue(out double revenue, out string? errorMessage);
         bool TryAddRoom(string typeCode, int number, double price, out string? errorMessage);
         bool TryRemoveRoom(int number, out string? errorMessage);

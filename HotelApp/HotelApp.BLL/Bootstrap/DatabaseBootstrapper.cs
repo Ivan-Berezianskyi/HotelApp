@@ -22,7 +22,7 @@ namespace HotelApp.Bootstrap
 
             if (!dbContext.RoomTypes.Any())
             {
-                foreach (KeyValuePair<string, RoomTypeDefinition> entry in RoomTypeRegistry.Definitions)
+                foreach (KeyValuePair<string, RoomCreator> entry in RoomCreatorRegistry.Creators)
                 {
                     dbContext.RoomTypes.Add(new DbRoomType { Code = entry.Key, Name = entry.Value.Name });
                 }

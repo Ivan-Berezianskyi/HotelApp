@@ -7,14 +7,14 @@ namespace HotelApp.Services
     {
         public bool TryCreate(string typeCode, int number, double price, out Room? room, out string? errorMessage)
         {
-            if (!RoomTypeRegistry.TryGet(typeCode, out RoomTypeDefinition? definition) || definition == null)
+            if (!RoomCreatorRegistry.TryGetCreator(typeCode, out RoomCreator? creator) || creator == null)
             {
                 room = null;
                 errorMessage = "Unknown room type";
                 return false;
             }
 
-            room = definition.Factory(number, price);
+            room = creator.Create(number, price);
             errorMessage = null;
             return true;
         }

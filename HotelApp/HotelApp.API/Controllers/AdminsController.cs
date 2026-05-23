@@ -9,9 +9,9 @@ namespace HotelApp.API.Controllers
     public class AdminsController : ControllerBase
     {
         private readonly IHotelFacade _hotelFacade;
-        private readonly HotelApp.API.Services.ICurrentUserService _currentUserService;
+        private readonly Services.ICurrentUserService _currentUserService;
 
-        public AdminsController(IHotelFacade hotelFacade, HotelApp.API.Services.ICurrentUserService currentUserService)
+        public AdminsController(IHotelFacade hotelFacade, Services.ICurrentUserService currentUserService)
         {
             _hotelFacade = hotelFacade;
             _currentUserService = currentUserService;

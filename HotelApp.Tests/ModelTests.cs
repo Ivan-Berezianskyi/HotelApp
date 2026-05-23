@@ -136,10 +136,10 @@ public class ModelTests
         AdminAccountStrategy strategy = new AdminAccountStrategy();
 
         // Act
-        Admin typedAdmin = strategy.GetTypedAccount<Admin>(admin);
+        bool isApplicable = strategy.IsApplicable(admin);
 
         // Assert
-        Assert.Same(admin, typedAdmin);
+        Assert.True(isApplicable);
     }
 
     [Fact]
@@ -150,33 +150,33 @@ public class ModelTests
         ClientAccountStrategy strategy = new ClientAccountStrategy();
 
         // Act
-        Client typedClient = strategy.GetTypedAccount<Client>(client);
+        bool isApplicable = strategy.IsApplicable(client);
 
         // Assert
-        Assert.Same(client, typedClient);
+        Assert.True(isApplicable);
     }
 
     [Fact]
-    public void RoomTypeRegistry_ResolvesDefinitionsAndCodes()
+    public void RoomCreatorRegistry_ResolvesCreatorsAndCodes()
     {
         // Arrange
         StandardRoom standardRoom = new StandardRoom(1, 100);
         VIPRoom vipRoom = new VIPRoom(2, 200);
 
         // Act
-        bool hasStandard = RoomTypeRegistry.TryGet("1", out RoomTypeDefinition? standardDefinition);
-        bool hasVip = RoomTypeRegistry.TryGet("2", out RoomTypeDefinition? vipDefinition);
-        bool hasUnknown = RoomTypeRegistry.TryGet("9", out RoomTypeDefinition? unknownDefinition);
-        bool standardCodeResolved = RoomTypeRegistry.TryGetCode(standardRoom, out string? standardCode);
-        bool vipCodeResolved = RoomTypeRegistry.TryGetCode(vipRoom, out string? vipCode);
+        bool hasStandard = RoomCreatorRegistry.TryGetCreator("1", out RoomCreator? standardCreator);
+        bool hasVip = RoomCreatorRegistry.TryGetCreator("2", out RoomCreator? vipCreator);
+        bool hasUnknown = RoomCreatorRegistry.TryGetCreator("9", out RoomCreator? unknownCreator);
+        bool standardCodeResolved = RoomCreatorRegistry.TryGetCode(standardRoom, out string? standardCode);
+        bool vipCodeResolved = RoomCreatorRegistry.TryGetCode(vipRoom, out string? vipCode);
 
         // Assert
         Assert.True(hasStandard);
         Assert.True(hasVip);
         Assert.False(hasUnknown);
-        Assert.NotNull(standardDefinition);
-        Assert.NotNull(vipDefinition);
-        Assert.Null(unknownDefinition);
+        Assert.NotNull(standardCreator);
+        Assert.NotNull(vipCreator);
+        Assert.Null(unknownCreator);
         Assert.Equal("1", standardCode);
         Assert.Equal("2", vipCode);
         Assert.True(standardCodeResolved);

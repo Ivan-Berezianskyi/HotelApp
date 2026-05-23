@@ -7,17 +7,20 @@ namespace HotelApp.Services
     {
         private readonly IAuthService _authService;
         private readonly IHotelAdminService _adminService;
+        private readonly Hotel _hotel;
         private readonly IRoomFactory _roomFactory;
         private readonly Func<IClient, IHotelClientService> _clientServiceFactory;
 
         public HotelFacade(
             IAuthService authService,
             IHotelAdminService adminService,
+            Hotel hotel,
             IRoomFactory roomFactory,
             Func<IClient, IHotelClientService> clientServiceFactory)
         {
             _authService = authService;
             _adminService = adminService;
+            _hotel = hotel;
             _roomFactory = roomFactory;
             _clientServiceFactory = clientServiceFactory;
         }
@@ -25,6 +28,16 @@ namespace HotelApp.Services
         public IAccount? Authenticate(int roleId, string name, string password)
         {
             return _authService.Authenticate(roleId, name, password);
+        }
+
+        public IReadOnlyList<Room> GetAllRooms()
+        {
+            return _hotel.Rooms;
+        }
+
+        public Room? GetRoom(int number)
+        {
+            return _hotel.FindRoomByNumber(number);
         }
 
         public bool TryGetRevenue(out double revenue, out string? errorMessage)

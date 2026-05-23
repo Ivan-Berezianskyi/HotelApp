@@ -13,15 +13,5 @@ namespace HotelApp.Services
         {
             return 2;
         }
-
-        public T GetTypedAccount<T>(IAccount account) where T : class, IAccount
-        {
-            if (account is IClient client)
-            {
-                return client as T ?? throw new InvalidOperationException("Cannot cast client account to requested type");
-            }
-
-            throw new InvalidOperationException($"Account is not client type");
-        }
     }
 }
